@@ -10,7 +10,7 @@
 
 @
 @ You must have a STM32F3Discovery board connected to a USB
-@ port of your computer for this example to work!!
+@ port of your computer for this example to work!!!
 @
 
   .section .text
