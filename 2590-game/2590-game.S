@@ -13,7 +13,7 @@
   @ Definitions are in definitions.s to keep this file "clean"
   #include "definitions.S"
 
-  .equ    BLINK_PERIOD, 250
+  .equ    BLINK_PERIOD, 8000
 
   .section .text
   .type Main, %function
@@ -33,13 +33,58 @@ Main:
   STR     R5, [R4]
 
   @ Configure LD3 for output
-  @   by setting bits 27:26 of GPIOE_MODER to 01 (GPIO Port E Mode Register)
+  @   by setting bits 19:18 of GPIOE_MODER to 01 (GPIO Port E Mode Register)
   @   (by BIClearing then ORRing)
   LDR     R4, =GPIOE_MODER
+  LDR     R5, [R4]                    @ Read ...
+  BIC     R5, #(0b11<<(LD4_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD4_PIN*2))    @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
+
+  LDR     R5, [R4]                    @ Read ...
+  BIC     R5, #(0b11<<(LD6_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD6_PIN*2))    @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
+
+  LDR     R5, [R4]                    @ Read ...
+  BIC     R5, #(0b11<<(LD8_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD8_PIN*2))    @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
+
+  LDR     R5, [R4]                    @ Read ...
+  BIC     R5, #(0b11<<(LD10_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD10_PIN*2))    @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
+
+  LDR     R5, [R4]                    @ Read ...
+  BIC     R5, #(0b11<<(LD9_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD9_PIN*2))    @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
+
+  LDR     R5, [R4]                    @ Read ...
+  BIC     R5, #(0b11<<(LD7_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD7_PIN*2))    @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
+
   LDR     R5, [R4]                    @ Read ...
   BIC     R5, #(0b11<<(LD3_PIN*2))    @ Modify ...
   ORR     R5, #(0b01<<(LD3_PIN*2))    @ write 01 to bits 
   STR     R5, [R4]                    @ Write 
+
+  LDR     R5, [R4]                    @ Read ...
+  BIC     R5, #(0b11<<(LD5_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD5_PIN*2))    @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
+
+  LDR     R4, =GPIOE_ODR            @   Invert LD4
+  LDR     R5, [R4]                  @
+  @ ORR     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  @ ORR     R5, #(0b1<<(LD6_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  @ ORR     R5, #(0b1<<(LD10_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  @ ORR     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  @ ORR     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  @ ORR     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  STR     R5, [R4]                  @ 
 
   @ Initialise the first countdown
 
@@ -78,6 +123,14 @@ Main:
 
   @ Initialise count to zero
   LDR   R4, =button_count             @ count = 0;
+  MOV   R5, #0                        @
+  STR   R5, [R4]                      @
+
+
+  @
+  @ Initialise boolean for blinking state
+  @
+  LDR   R4, =is_blinking              @ is_blinking = 0;
   MOV   R5, #0                        @
   STR   R5, [R4]                      @
 
@@ -123,25 +176,63 @@ End_Main:
   .type  SysTick_Handler, %function
 SysTick_Handler:
 
-  PUSH  {R4, R5, LR}
+  PUSH  {R4, R5, R6, LR}
+
+@  LD4
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  CMP   R5, #2000                 @
+  BLE   .LcloseLD4                  @
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD4_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD4                     
+.LcloseLD4:                         @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD4_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD4:                       @ }
+
+@ LD6
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =3000                   @
+  CMP   R5, R6                      @
+  BGT   .LopenLD6                  @
+  LDR   R6, =1000                   @
+  CMP   R5, R6                      @
+  BGT   .LcloseLD6                  @
+.LopenLD6:                         @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD6_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD6                     
+.LcloseLD6:                         @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD6_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD6:                       @ }
+
+  LDR   R4, =blink_countdown        @ 
+  LDR   R5, [R4]                    @
+  SUB   R5, R5, #1                  @   countdown = countdown - 1;
+  STR   R5, [R4]                    @
+
 
   LDR   R4, =blink_countdown        @ if (countdown != 0) {
   LDR   R5, [R4]                    @
   CMP   R5, #0                      @
-  BEQ   .LelseFire                  @
-
-  SUB   R5, R5, #1                  @   countdown = countdown - 1;
-  STR   R5, [R4]                    @
+  BEQ   .LresetCountdown            
 
   B     .LendIfDelay                @ }
 
-.LelseFire:                         @ else {
-
-  LDR     R4, =GPIOE_ODR            @   Invert LD3
-  LDR     R5, [R4]                  @
-  EOR     R5, #(0b1<<(LD3_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
-  STR     R5, [R4]                  @ 
-
+.LresetCountdown:                   @ else {
   LDR     R4, =blink_countdown      @   countdown = BLINK_PERIOD;
   LDR     R5, =BLINK_PERIOD         @
   STR     R5, [R4]                  @
@@ -153,7 +244,7 @@ SysTick_Handler:
   STR     R5, [R4]                  @
 
   @ Return from interrupt handler
-  POP  {R4, R5, PC}
+  POP  {R4, R5, R6, PC}
 
 
 
@@ -167,8 +258,14 @@ EXTI0_IRQHandler:
   PUSH  {R4,R5,LR}
 
   LDR   R4, =button_count           @ count = count + 1
+
   LDR   R5, [R4]                    @
   ADD   R5, R5, #1                  @
+  STR   R5, [R4]                    @
+
+  LDR   R4, =is_blinking            @   is_blinking = !is_blinking
+  LDR   R5, [R4]                    @
+  EOR   R5, #1                      @
   STR   R5, [R4]                    @
 
   LDR   R4, =EXTI_PR                @ Clear (acknowledge) the interrupt
@@ -185,6 +282,9 @@ button_count:
   .space  4
 
 blink_countdown:
+  .space  4
+
+is_blinking:
   .space  4
 
   .end
