@@ -13,12 +13,12 @@
   @ Definitions are in definitions.s to keep this file "clean"
   #include "definitions.S"
 
-  .equ    BLINK_PERIOD, 8000
+  .equ    BLINK_PERIOD, 4000
 
   .section .text
   .type Main, %function
 Main:
-  PUSH  {R4-R5,LR}
+  PUSH  {R4-R6,LR}
 
 
   @
@@ -78,12 +78,12 @@ Main:
 
   LDR     R4, =GPIOE_ODR            @   Invert LD4
   LDR     R5, [R4]                  @
-  @ ORR     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  @ ORR     R5, #(0b1<<(LD6_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  @ ORR     R5, #(0b1<<(LD10_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  @ ORR     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  @ ORR     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  @ ORR     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD6_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD10_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
   STR     R5, [R4]                  @ 
 
   @ Initialise the first countdown
@@ -91,6 +91,17 @@ Main:
   LDR     R4, =blink_countdown
   LDR     R5, =BLINK_PERIOD
   STR     R5, [R4]  
+
+  @
+  @ Initialise the win_or_lose variable to 0 (not used in this part of the code, but will be used in the next part)
+  @ 0 : game is ongoing
+  @ 1 : player wins
+  @ 2 : player loses
+
+  LDR     R4, =win_or_lose
+  MOV     R5, #0
+  STR     R5, [R4]
+
 
   @ Configure SysTick Timer to generate an interrupt every 1ms
 
@@ -110,29 +121,6 @@ Main:
   LDR     R5, =0x1                    @     by writing any value
   STR     R5, [R4]
 
-  LDR     R4, =SYSTICK_CSR            @   Start SysTick timer by setting CSR to 0x7
-  LDR     R5, =0x7                    @     set CLKSOURCE (bit 2) to system clock (1)
-  STR     R5, [R4]                    @     set TICKINT (bit 1) to 1 to enable interrupts
-                                      @     set ENABLE (bit 0) to 1
-
-
-  @
-  @ Prepare external interrupt Line 0 (USER pushbutton)
-  @ We'll count the number of times the button is pressed
-  @
-
-  @ Initialise count to zero
-  LDR   R4, =button_count             @ count = 0;
-  MOV   R5, #0                        @
-  STR   R5, [R4]                      @
-
-
-  @
-  @ Initialise boolean for blinking state
-  @
-  LDR   R4, =is_blinking              @ is_blinking = 0;
-  MOV   R5, #0                        @
-  STR   R5, [R4]                      @
 
   @ Configure USER pushbutton (GPIO Port A Pin 0 on STM32F3 Discovery
   @   kit) to use the EXTI0 external interrupt signal
@@ -166,7 +154,7 @@ Idle_Loop:
   B     Idle_Loop
   
 End_Main:
-  POP   {R4-R5,PC}
+  POP   {R4-R6,PC}
 
 
 
@@ -178,10 +166,11 @@ SysTick_Handler:
 
   PUSH  {R4, R5, R6, LR}
 
+
 @  LD4
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R4, =blink_countdown        @ if (countdown >= 1000) {
   LDR   R5, [R4]                    @
-  CMP   R5, #2000                 @
+  CMP   R5, #1000                 @
   BLE   .LcloseLD4                  @
   LDR     R4, =GPIOE_ODR            @   
   LDR     R5, [R4]                  @
@@ -194,18 +183,18 @@ SysTick_Handler:
   BIC    R5, #(0b1<<(LD4_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
   STR    R5, [R4]                   @ 
 
-.LendLD4:                       @ }
+.LendLD4:                           @ }
 
 @ LD6
   LDR   R4, =blink_countdown        @ if (countdown != 2000) {
   LDR   R5, [R4]                    @
-  LDR   R6, =3000                   @
+  LDR   R6, =1500                   @
   CMP   R5, R6                      @
-  BGT   .LopenLD6                  @
-  LDR   R6, =1000                   @
+  BGT   .LopenLD6                   @
+  LDR   R6, =500                   @
   CMP   R5, R6                      @
   BGT   .LcloseLD6                  @
-.LopenLD6:                         @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
+.LopenLD6:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
   LDR     R4, =GPIOE_ODR            @   
   LDR     R5, [R4]                  @
   ORR   R5, #(0b1<<(LD6_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
@@ -217,7 +206,146 @@ SysTick_Handler:
   BIC    R5, #(0b1<<(LD6_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
   STR    R5, [R4]                   @ 
 
-.LendLD6:                       @ }
+.LendLD6:                           @ }
+
+@ LD8
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =2000                   @
+  CMP   R5, R6                      @
+  BGT   .LopenLD8                   @
+  LDR   R6, =1000                   @
+  CMP   R5, R6                      @
+  BGT   .LcloseLD8                  @
+.LopenLD8:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD8_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD8                     
+.LcloseLD8:                         @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD8_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD8:                           @ }
+
+@ LD10
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =2500                   @
+  CMP   R5, R6                      @
+  BGT   .LopenLD10                  @
+  LDR   R6, =1500                   @
+  CMP   R5, R6                      @
+  BGT   .LcloseLD10                 @
+.LopenLD10:                         @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD10_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD10                     
+.LcloseLD10:                        @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD10_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD10:                          @ }
+
+@ LD9
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =3000                   @
+  CMP   R5, R6                      @
+  BGT   .LopenLD9                   @
+  LDR   R6, =2000                   @
+  CMP   R5, R6                      @
+  BGT   .LcloseLD9                  @
+.LopenLD9:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD9_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD9                     
+.LcloseLD9:                         @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD9_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD9:                           @ }
+
+@ LD7
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =3500                   @
+  CMP   R5, R6                      @
+  BGT   .LopenLD7                   @
+  LDR   R6, =2500                   @
+  CMP   R5, R6                      @
+  BGT   .LcloseLD7                  @
+.LopenLD7:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD7_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD7                     
+.LcloseLD7:                         @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD7_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD7:                           @ }
+
+@ LD5
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =4000                   @
+  CMP   R5, R6                      @
+  BGT   .LopenLD5                   @
+  LDR   R6, =3000                   @
+  CMP   R5, R6                      @
+  BGT   .LcloseLD5                  @
+.LopenLD5:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD5_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD5                     
+.LcloseLD5:                         @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD5_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD5:                           @ }
+
+@ LD3
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =3500                   @
+  CMP   R5, R6                      @
+  BGT   .LcloseLD3                  @
+  LDR   R6, =500                   @
+  CMP   R5, R6                      @
+  BLT   .LcloseLD3                  @
+.LopenLD3:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  ORR   R5, #(0b1<<(LD3_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+  STR     R5, [R4]                  @ 
+  B     .LendLD3                     
+.LcloseLD3:                         @  } else {
+  LDR     R4, =GPIOE_ODR            @   
+  LDR     R5, [R4]                  @
+  BIC    R5, #(0b1<<(LD3_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+  STR    R5, [R4]                   @ 
+
+.LendLD3:                           @ }
+
 
   LDR   R4, =blink_countdown        @ 
   LDR   R5, [R4]                    @
@@ -257,16 +385,26 @@ EXTI0_IRQHandler:
 
   PUSH  {R4,R5,LR}
 
-  LDR   R4, =button_count           @ count = count + 1
+  LDR     R4, =SYSTICK_CSR            @   Start SysTick timer by setting CSR to 0x7
+  LDR     R5, =0x7                    @     set CLKSOURCE (bit 2) to system clock (1)
+  STR     R5, [R4]                    @     set TICKINT (bit 1) to 1 to enable interrupts
+                                      @     set ENABLE (bit 0) to 1
 
+  LDR   R4, =win_or_lose            @ if (win_or_lose == 0) {
   LDR   R5, [R4]                    @
-  ADD   R5, R5, #1                  @
-  STR   R5, [R4]                    @
+  CMP   R5, #0                      @
+  BNE   .LcheckIfWin                @
 
-  LDR   R4, =is_blinking            @   is_blinking = !is_blinking
-  LDR   R5, [R4]                    @
-  EOR   R5, #1                      @
-  STR   R5, [R4]                    @
+  BL   checkIfWin                     @   checkIfWin() to see if player has won
+
+  B   .LendEventHandle                     @   (if player has won, checkIfWin will set win_or_lose to 1, otherwise it will leave it as 0)
+
+.LcheckIfWin:                        @ } else {
+  LDR     R4, =win_or_lose
+  MOV     R5, #0
+  STR     R5, [R4]                    @ win_or_lose = 0
+
+.LendEventHandle:                @ }
 
   LDR   R4, =EXTI_PR                @ Clear (acknowledge) the interrupt
   MOV   R5, #(1<<0)                 @
@@ -276,15 +414,126 @@ EXTI0_IRQHandler:
   POP  {R4,R5,PC}
 
 
-  .section .data
+
+
+
+
+  @ SUBROUTINES
+  @ checkIfWin() - checks if the player has won the game (all LEDs are off)
+  @   Input: R0 = win_or_lose (should be 1 when this function is called)
+  @   Output: R0 = 1 if player wins, 0
+
+checkIfWin:
+  PUSH  {R4, R5, R6, LR}
+
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =2000                   @
+  CMP   R5, R6                      @
+  BGT   .LcheckIfWinNotLost         @
+  LDR   R6, =1500                   @
+  CMP   R5, R6                      @
+  BLT   .LcheckIfWinNotLost         @
+
+@ Has Lost
+  LDR     R4, =SYSTICK_CSR            @ Stop SysTick timer
+  LDR     R5, =0                      @   by writing 0 to CSR
+  STR     R5, [R4]                    @   CSR is the Control and Status Register
+
+  LDR     R4, =SYSTICK_VAL            @   Reset SysTick internal counter to 0
+  LDR     R5, =0x1                    @     by writing any value
+  STR     R5, [R4]
+
+    @ Initialise the first countdown
+
+  LDR     R4, =blink_countdown
+  LDR     R5, =BLINK_PERIOD
+  STR     R5, [R4]  
+
   
-button_count:
-  .space  4
+
+  LDR    R4, =win_or_lose
+  LDR     R5, =2
+  STR     R5, [R4]                    @ win_or_lose = 1
+
+  LDR     R4, =GPIOE_ODR 
+  LDR     R5, [R4]                    @ Read ...
+
+  ORR     R5, #(0b1<<(LD3_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+  ORR     R5, #(0b1<<(LD10_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
+
+  BIC     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  BIC     R5, #(0b1<<(LD5_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<L5_PIN);
+  BIC     R5, #(0b1<<(LD6_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
+  BIC     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
+  BIC     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
+  BIC     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
+
+  STR     R5, [R4]                    @ Write 
+
+  B      .LcheckIfWinEnd
+
+
+.LcheckIfWinNotLost:
+  @ LD3
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =3500                   @
+  CMP   R5, R6                      @
+  BGT   .LcheckIfWinEnd                  @
+  LDR   R6, =500                   @
+  CMP   R5, R6                      @
+  BLT   .LcheckIfWinEnd                 @
+.LisOpenLD3:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+
+  LDR     R4, =SYSTICK_CSR            @ Stop SysTick timer
+  LDR     R5, =0                      @   by writing 0 to CSR
+  STR     R5, [R4]                    @   CSR is the Control and Status Register
+
+  LDR     R4, =SYSTICK_VAL            @   Reset SysTick internal counter to 0
+  LDR     R5, =0x1                    @     by writing any value
+  STR     R5, [R4]
+
+    @ Initialise the first countdown
+
+  LDR     R4, =blink_countdown
+  LDR     R5, =BLINK_PERIOD
+  STR     R5, [R4]  
+
+  LDR    R4, =win_or_lose
+  LDR     R5, =1
+  STR     R5, [R4]                    @ win_or_lose = 1
+
+  LDR     R4, =GPIOE_ODR 
+  LDR     R5, [R4]                    @ Read ...
+
+  ORR     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
+  ORR     R5, #(0b1<<(LD6_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
+
+  BIC     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  BIC     R5, #(0b1<<(LD5_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
+  BIC     R5, #(0b1<<(LD10_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
+  BIC     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
+  BIC     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
+  BIC     R5, #(0b1<<(LD3_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+
+  STR     R5, [R4]                    @ Write 
+
+
+                    
+.LcheckIfWinEnd:                @ }
+
+  POP   {R4, R5, R6, PC}
+
+
+
+  .section .data
 
 blink_countdown:
   .space  4
 
-is_blinking:
+win_or_lose:
   .space  4
+
 
   .end
