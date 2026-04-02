@@ -92,6 +92,13 @@ Main:
   LDR     R5, =BLINK_PERIOD
   STR     R5, [R4]  
 
+  
+  @ Initialise the level selected to 1 (easy)
+
+  LDR     R4, =1
+  LDR     R5, =level_selected
+  STR     R4, [R5]  
+
   @
   @ Initialise the win_or_lose variable to 0 (not used in this part of the code, but will be used in the next part)
   @ 0 : game is ongoing
@@ -385,6 +392,15 @@ EXTI0_IRQHandler:
 
   PUSH  {R4,R5,LR}
 
+  LDR     R4, =win_or_lose
+  LDR     R5, [R4]
+  CMP     R5, #2
+  BEQ     .LendEventHandle
+  LDR     R4, =level_selected
+  LDR     R5, [R4]
+  CMP     R5, #4
+  BEQ     .LendEventHandle
+
   LDR     R4, =SYSTICK_CSR            @   Start SysTick timer by setting CSR to 0x7
   LDR     R5, =0x7                    @     set CLKSOURCE (bit 2) to system clock (1)
   STR     R5, [R4]                    @     set TICKINT (bit 1) to 1 to enable interrupts
@@ -401,6 +417,9 @@ EXTI0_IRQHandler:
 
 .LcheckIfWin:                        @ } else {
   LDR     R4, =win_or_lose
+  LDR     R5, [R4]
+  CMP     R5, #2
+  BEQ     .LendEventHandle
   MOV     R5, #0
   STR     R5, [R4]                    @ win_or_lose = 0
 
@@ -419,13 +438,48 @@ EXTI0_IRQHandler:
 
 
   @ SUBROUTINES
-  @ checkIfWin() - checks if the player has won the game (all LEDs are off)
-  @   Input: R0 = win_or_lose (should be 1 when this function is called)
-  @   Output: R0 = 1 if player wins, 0
+  @ checkIfWin() - checks if the player has won the game 
+  @   Input: variable win_or_lose 
+  @   Output:  variable win_or_lose is 1 if player has won, 2 if player has lost
 
 checkIfWin:
   PUSH  {R4, R5, R6, LR}
 
+  LDR   R4, = level_selected
+  LDR   R5, [R4]                    @ if (level_selected == 1) {
+  CMP   R5, #1                      @
+  BEQ   .LcheckIfWinIsLevel1        @
+  CMP   R5, #2                      @
+  BEQ   .LcheckIfWinIsLevel2        @
+
+
+  @ Bullet in LD4
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =3500                   @
+  CMP   R5, R6                      @
+  BGT   .LcheckIfWinIsLevel2                  @
+  LDR   R6, =3000                   @
+  CMP   R5, R6                      @
+  BLT   .LcheckIfWinIsLevel2                 @
+
+  B     .LcheckIfWinDead
+
+.LcheckIfWinIsLevel2:
+  @ Bullet in LD7
+  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
+  LDR   R5, [R4]                    @
+  LDR   R6, =1000                   @
+  CMP   R5, R6                      @
+  BGT   .LcheckIfWinIsLevel1                  @
+  LDR   R6, =500                   @
+  CMP   R5, R6                      @
+  BLT   .LcheckIfWinIsLevel1              @
+
+  B     .LcheckIfWinDead
+
+.LcheckIfWinIsLevel1:
+  @ Bullet in LD10
   LDR   R4, =blink_countdown        @ if (countdown != 2000) {
   LDR   R5, [R4]                    @
   LDR   R6, =2000                   @
@@ -435,6 +489,7 @@ checkIfWin:
   CMP   R5, R6                      @
   BLT   .LcheckIfWinNotLost         @
 
+.LcheckIfWinDead:
 @ Has Lost
   LDR     R4, =SYSTICK_CSR            @ Stop SysTick timer
   LDR     R5, =0                      @   by writing 0 to CSR
@@ -452,9 +507,9 @@ checkIfWin:
 
   
 
-  LDR    R4, =win_or_lose
+  LDR     R4, =win_or_lose
   LDR     R5, =2
-  STR     R5, [R4]                    @ win_or_lose = 1
+  STR     R5, [R4]                    @ win_or_lose = 2
 
   LDR     R4, =GPIOE_ODR 
   LDR     R5, [R4]                    @ Read ...
@@ -475,37 +530,45 @@ checkIfWin:
 
 
 .LcheckIfWinNotLost:
-  @ LD3
+
+  @ Check if blank
   LDR   R4, =blink_countdown        @ if (countdown != 2000) {
   LDR   R5, [R4]                    @
   LDR   R6, =3500                   @
   CMP   R5, R6                      @
-  BGT   .LcheckIfWinEnd                  @
-  LDR   R6, =500                   @
+  BGT   .LcheckIfWinEnd             @
+  LDR   R6, =500                    @
   CMP   R5, R6                      @
-  BLT   .LcheckIfWinEnd                 @
-.LisOpenLD3:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+  BLT   .LcheckIfWinEnd             @
+.LisOpenLD3:                        @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
 
-  LDR     R4, =SYSTICK_CSR            @ Stop SysTick timer
-  LDR     R5, =0                      @   by writing 0 to CSR
-  STR     R5, [R4]                    @   CSR is the Control and Status Register
+  LDR     R4, =SYSTICK_CSR          @ Stop SysTick timer
+  LDR     R5, =0                    @   by writing 0 to CSR
+  STR     R5, [R4]                  @   CSR is the Control and Status Register
 
-  LDR     R4, =SYSTICK_VAL            @   Reset SysTick internal counter to 0
-  LDR     R5, =0x1                    @     by writing any value
+  LDR     R4, =SYSTICK_VAL          @   Reset SysTick internal counter to 0
+  LDR     R5, =0x1                  @     by writing any value
   STR     R5, [R4]
 
-    @ Initialise the first countdown
+
+
+  @ Initialise the first countdown
 
   LDR     R4, =blink_countdown
   LDR     R5, =BLINK_PERIOD
   STR     R5, [R4]  
 
-  LDR    R4, =win_or_lose
+  LDR     R4, =win_or_lose
   LDR     R5, =1
-  STR     R5, [R4]                    @ win_or_lose = 1
+  STR     R5, [R4]                   @ win_or_lose = 1
+
+  LDR     R4, =level_selected
+  LDR     R5, [R4]
+  ADD     R5, R5, #1
+  STR     R5, [R4]  
 
   LDR     R4, =GPIOE_ODR 
-  LDR     R5, [R4]                    @ Read ...
+  LDR     R5, [R4]                  @ Read ...
 
   ORR     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
   ORR     R5, #(0b1<<(LD6_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
@@ -518,7 +581,6 @@ checkIfWin:
   BIC     R5, #(0b1<<(LD3_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
 
   STR     R5, [R4]                    @ Write 
-
 
                     
 .LcheckIfWinEnd:                @ }
@@ -533,6 +595,9 @@ blink_countdown:
   .space  4
 
 win_or_lose:
+  .space  4
+
+level_selected:
   .space  4
 
 
