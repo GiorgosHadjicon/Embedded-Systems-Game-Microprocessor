@@ -175,208 +175,208 @@ SysTick_Handler:
 
 
 @  LD4
-  LDR   R4, =blink_countdown        @ if (countdown >= 1000) {
-  LDR   R5, [R4]                    @
-  CMP   R5, #1000                 @
-  BLE   .LcloseLD4                  @
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD4_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  STR     R5, [R4]                  @ 
+  LDR     R4, =blink_countdown        @ if (countdown >= 1000) {
+  LDR     R5, [R4]                    @
+  CMP     R5, #1000                 @
+  BLE     .LcloseLD4                  @
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD4_PIN))       @   Modify ... (set bit LD4_PIN to 1)
+  STR     R5, [R4]                    @   Write 
   B     .LendLD4                     
-.LcloseLD4:                         @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD4_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  STR    R5, [R4]                   @ 
+.LcloseLD4:                           @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD4_PIN))       @   Modify ... (set bit LD4_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD4:                           @ }
+.LendLD4:                             @ }
 
 @ LD6
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =1500                   @
-  CMP   R5, R6                      @
-  BGT   .LopenLD6                   @
-  LDR   R6, =500                   @
-  CMP   R5, R6                      @
-  BGT   .LcloseLD6                  @
-.LopenLD6:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD6_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
-  STR     R5, [R4]                  @ 
-  B     .LendLD6                     
-.LcloseLD6:                         @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD6_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
-  STR    R5, [R4]                   @ 
+  LDR     R4, =blink_countdown        @ if (countdown > 1500 || countdown <= 500) 
+  LDR     R5, [R4]                    @
+  LDR     R6, =1500                   @
+  CMP     R5, R6                      @
+  BGT     .LopenLD6                   @
+  LDR     R6, =500                    @
+  CMP     R5, R6                      @
+  BGT     .LcloseLD6                  @
+.LopenLD6:                            @   {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD6_PIN))       @   Modify ... (set bit LD6_PIN to 1)
+  STR     R5, [R4]                    @   Write 
+  B       .LendLD6                     
+.LcloseLD6:                           @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD6_PIN))       @   Modify ... (set bit LD6_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD6:                           @ }
+.LendLD6:                             @ }
 
 @ LD8
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =2000                   @
-  CMP   R5, R6                      @
-  BGT   .LopenLD8                   @
-  LDR   R6, =1000                   @
-  CMP   R5, R6                      @
-  BGT   .LcloseLD8                  @
-.LopenLD8:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD8_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
-  STR     R5, [R4]                  @ 
+  LDR     R4, =blink_countdown        @ if (countdown > 2000 || countdown <= 1000) 
+  LDR     R5, [R4]                    @
+  LDR     R6, =2000                   @
+  CMP     R5, R6                      @
+  BGT     .LopenLD8                   @
+  LDR     R6, =1000                   @
+  CMP     R5, R6                      @
+  BGT     .LcloseLD8                  @
+.LopenLD8:                            @   {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD8_PIN))       @   Modify ... (set bit LD8_PIN to 1)
+  STR     R5, [R4]                    @   Write 
   B     .LendLD8                     
-.LcloseLD8:                         @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD8_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
-  STR    R5, [R4]                   @ 
+.LcloseLD8:                           @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD8_PIN))       @   Modify ... (set bit LD8_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD8:                           @ }
+.LendLD8:                             @ }
 
 @ LD10
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =2500                   @
-  CMP   R5, R6                      @
-  BGT   .LopenLD10                  @
-  LDR   R6, =1500                   @
-  CMP   R5, R6                      @
-  BGT   .LcloseLD10                 @
-.LopenLD10:                         @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD10_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
-  STR     R5, [R4]                  @ 
-  B     .LendLD10                     
-.LcloseLD10:                        @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD10_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
-  STR    R5, [R4]                   @ 
+  LDR     R4, =blink_countdown        @ if (countdown > 2500 || countdown <= 1500) 
+  LDR     R5, [R4]                    @
+  LDR     R6, =2500                   @
+  CMP     R5, R6                      @
+  BGT     .LopenLD10                  @
+  LDR     R6, =1500                   @
+  CMP     R5, R6                      @
+  BGT     .LcloseLD10                 @
+.LopenLD10:                           @   {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD10_PIN))      @   Modify ... (set bit LD10_PIN to 1)
+  STR     R5, [R4]                    @   Write 
+  B       .LendLD10                    
+.LcloseLD10:                          @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD10_PIN))      @   Modify ... (set bit LD10_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD10:                          @ }
+.LendLD10:                            @ }
 
 @ LD9
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =3000                   @
-  CMP   R5, R6                      @
-  BGT   .LopenLD9                   @
-  LDR   R6, =2000                   @
-  CMP   R5, R6                      @
-  BGT   .LcloseLD9                  @
-.LopenLD9:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD9_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
-  STR     R5, [R4]                  @ 
-  B     .LendLD9                     
-.LcloseLD9:                         @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD9_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
-  STR    R5, [R4]                   @ 
+  LDR     R4, =blink_countdown        @ if (countdown > 3000 || countdown <= 2000) 
+  LDR     R5, [R4]                    @
+  LDR     R6, =3000                   @
+  CMP     R5, R6                      @
+  BGT     .LopenLD9                   @
+  LDR     R6, =2000                   @
+  CMP     R5, R6                      @
+  BGT     .LcloseLD9                  @
+.LopenLD9:                            @   {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD9_PIN))       @   Modify ... (set bit LD9_PIN to 1)
+  STR     R5, [R4]                    @   Write 
+  B       .LendLD9                     
+.LcloseLD9:                           @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD9_PIN))       @   Modify ... (set bit LD9_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD9:                           @ }
+.LendLD9:                             @ }
 
 @ LD7
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =3500                   @
-  CMP   R5, R6                      @
-  BGT   .LopenLD7                   @
-  LDR   R6, =2500                   @
-  CMP   R5, R6                      @
-  BGT   .LcloseLD7                  @
-.LopenLD7:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD7_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
-  STR     R5, [R4]                  @ 
-  B     .LendLD7                     
-.LcloseLD7:                         @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD7_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
-  STR    R5, [R4]                   @ 
+  LDR     R4, =blink_countdown        @ if (countdown > 3500 || countdown <= 2500) 
+  LDR     R5, [R4]                    @
+  LDR     R6, =3500                   @
+  CMP     R5, R6                      @
+  BGT     .LopenLD7                   @
+  LDR     R6, =2500                   @
+  CMP     R5, R6                      @
+  BGT     .LcloseLD7                  @
+.LopenLD7:                            @   {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD7_PIN))       @   Modify ... (set bit LD7_PIN to 1)
+  STR     R5, [R4]                    @   Write 
+  B       .LendLD7                     
+.LcloseLD7:                           @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD7_PIN))       @   Modify ... (set bit LD7_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD7:                           @ }
+.LendLD7:                             @ }
 
 @ LD5
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =4000                   @
-  CMP   R5, R6                      @
-  BGT   .LopenLD5                   @
-  LDR   R6, =3000                   @
-  CMP   R5, R6                      @
-  BGT   .LcloseLD5                  @
-.LopenLD5:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD5_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
-  STR     R5, [R4]                  @ 
-  B     .LendLD5                     
-.LcloseLD5:                         @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD5_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
-  STR    R5, [R4]                   @ 
+  LDR     R4, =blink_countdown        @ if (countdown > 4000 || countdown <= 3000) 
+  LDR     R5, [R4]                    @
+  LDR     R6, =4000                   @
+  CMP     R5, R6                      @
+  BGT     .LopenLD5                   @
+  LDR     R6, =3000                   @
+  CMP     R5, R6                      @
+  BGT     .LcloseLD5                  @
+.LopenLD5:                            @   {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD5_PIN))       @   Modify ... (set bit LD5_PIN to 1)
+  STR     R5, [R4]                    @   Write 
+  B       .LendLD5                     
+.LcloseLD5:                           @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD5_PIN))       @   Modify ... (set bit LD5_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD5:                           @ }
+.LendLD5:                             @ }
 
 @ LD3
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =3500                   @
-  CMP   R5, R6                      @
-  BGT   .LcloseLD3                  @
-  LDR   R6, =500                   @
-  CMP   R5, R6                      @
-  BLT   .LcloseLD3                  @
-.LopenLD3:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  ORR   R5, #(0b1<<(LD3_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
-  STR     R5, [R4]                  @ 
-  B     .LendLD3                     
-.LcloseLD3:                         @  } else {
-  LDR     R4, =GPIOE_ODR            @   
-  LDR     R5, [R4]                  @
-  BIC    R5, #(0b1<<(LD3_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
-  STR    R5, [R4]                   @ 
+  LDR     R4, =blink_countdown        @ if (countdown <= 3500 && countdown >= 500) 
+  LDR     R5, [R4]                    @
+  LDR     R6, =3500                   @
+  CMP     R5, R6                      @
+  BGT     .LcloseLD3                  @
+  LDR     R6, =500                    @
+  CMP     R5, R6                      @
+  BLT     .LcloseLD3                  @
+.LopenLD3:                            @   {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  ORR     R5, #(0b1<<(LD3_PIN))       @   Modify ... (set bit LD3_PIN to 1)
+  STR     R5, [R4]                    @   Write 
+  B       .LendLD3                     
+.LcloseLD3:                           @  } else {
+  LDR     R4, =GPIOE_ODR              @   
+  LDR     R5, [R4]                    @   Read ...
+  BIC     R5, #(0b1<<(LD3_PIN))       @   Modify ... (set bit LD3_PIN to 0)
+  STR     R5, [R4]                    @   Write 
 
-.LendLD3:                           @ }
-
-
-  LDR   R4, =blink_countdown        @ 
-  LDR   R5, [R4]                    @
-  SUB   R5, R5, #1                  @   countdown = countdown - 1;
-  STR   R5, [R4]                    @
+.LendLD3:                             @ }
 
 
-  LDR   R4, =blink_countdown        @ if (countdown != 0) {
-  LDR   R5, [R4]                    @
-  CMP   R5, #0                      @
-  BEQ   .LresetCountdown            
+  LDR     R4, =blink_countdown        @ 
+  LDR     R5, [R4]                    @   Read ...
+  SUB     R5, R5, #1                  @   Modify ... (countdown = countdown - 1)
+  STR     R5, [R4]                    @   Write 
 
-  B     .LendIfDelay                @ }
 
-.LresetCountdown:                   @ else {
-  LDR     R4, =blink_countdown      @   countdown = BLINK_PERIOD;
-  LDR     R5, =BLINK_PERIOD         @
-  STR     R5, [R4]                  @
+  LDR     R4, =blink_countdown        @ if (countdown != 0) {
+  LDR     R5, [R4]                    @
+  CMP     R5, #0                      @
+  BEQ     .LresetCountdown            
 
-.LendIfDelay:                       @ }
+  B       .LendIfDelay                @ }
 
-  LDR     R4, =SCB_ICSR             @ Clear (acknowledge) the interrupt
-  LDR     R5, =SCB_ICSR_PENDSTCLR   @
-  STR     R5, [R4]                  @
+.LresetCountdown:                     @ else {
+  LDR     R4, =blink_countdown        @   Read ...
+  LDR     R5, =BLINK_PERIOD           @   Modify ... (countdown = BLINK_PERIOD) [Reset countdown]
+  STR     R5, [R4]                    @   Write 
+
+.LendIfDelay:                         @ }
+
+  LDR     R4, =SCB_ICSR               @ Clear (acknowledge) the interrupt
+  LDR     R5, =SCB_ICSR_PENDSTCLR     @
+  STR     R5, [R4]                    @
 
   @ Return from interrupt handler
   POP  {R4, R5, R6, PC}
@@ -406,28 +406,28 @@ EXTI0_IRQHandler:
   STR     R5, [R4]                    @     set TICKINT (bit 1) to 1 to enable interrupts
                                       @     set ENABLE (bit 0) to 1
 
-  LDR   R4, =win_or_lose            @ if (win_or_lose == 0) {
-  LDR   R5, [R4]                    @
-  CMP   R5, #0                      @
-  BNE   .LcheckIfWin                @
+  LDR     R4, =win_or_lose            @ if (win_or_lose == 0) {
+  LDR     R5, [R4]                    @
+  CMP     R5, #0                      @
+  BNE     .LcheckIfWin                @
 
-  BL   checkIfWin                     @   checkIfWin() to see if player has won
+  BL      checkIfWin                  @   checkIfWin() [to see if player has won]
 
-  B   .LendEventHandle                     @   (if player has won, checkIfWin will set win_or_lose to 1, otherwise it will leave it as 0)
+  B       .LendEventHandle            @   (if player has won, checkIfWin will set win_or_lose to 1, otherwise it will leave it as 0)
 
-.LcheckIfWin:                        @ } else {
-  LDR     R4, =win_or_lose
-  LDR     R5, [R4]
-  CMP     R5, #2
-  BEQ     .LendEventHandle
-  MOV     R5, #0
-  STR     R5, [R4]                    @ win_or_lose = 0
+.LcheckIfWin:                         @ } else {
+  LDR     R4, =win_or_lose            @ if (win_or_lose != 2) {
+  LDR     R5, [R4]                    @      
+  CMP     R5, #2                      @            
+  BEQ     .LendEventHandle            @   
+  MOV     R5, #0                      @   Modify ... (win_or_lose = 0) [Reset win_or_lose to 0 to indicate game is ongoing again]
+  STR     R5, [R4]                    @   Write 
 
-.LendEventHandle:                @ }
+.LendEventHandle:                     @ }
 
-  LDR   R4, =EXTI_PR                @ Clear (acknowledge) the interrupt
-  MOV   R5, #(1<<0)                 @
-  STR   R5, [R4]                    @
+  LDR     R4, =EXTI_PR                @ Clear (acknowledge) the interrupt
+  MOV     R5, #(1<<0)                 @
+  STR     R5, [R4]                    @
 
   @ Return from interrupt handler
   POP  {R4,R5,PC}
@@ -445,49 +445,51 @@ EXTI0_IRQHandler:
 checkIfWin:
   PUSH  {R4, R5, R6, LR}
 
-  LDR   R4, = level_selected
-  LDR   R5, [R4]                    @ if (level_selected == 1) {
-  CMP   R5, #1                      @
-  BEQ   .LcheckIfWinIsLevel1        @
-  CMP   R5, #2                      @
-  BEQ   .LcheckIfWinIsLevel2        @
+  LDR     R4, = level_selected
+  LDR     R5, [R4]                    @ if (level_selected == 1) {
+  CMP     R5, #1                      @
+  BEQ     .LcheckIfWinIsLevel1        @   branch to level 1  
+  CMP     R5, #2                      @ } else if (level_selected == 2) { 
+  BEQ     .LcheckIfWinIsLevel2        @   branch to level 2
+                                      @ }
 
-
+  @ Level 3
   @ Bullet in LD4
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =3500                   @
-  CMP   R5, R6                      @
-  BGT   .LcheckIfWinIsLevel2                  @
-  LDR   R6, =3000                   @
-  CMP   R5, R6                      @
-  BLT   .LcheckIfWinIsLevel2                 @
+  LDR     R4, =blink_countdown        @ if (countdown <= 3500 && countdown >= 3000) {
+  LDR     R5, [R4]                    @   
+  LDR     R6, =3500                   @
+  CMP     R5, R6                      @
+  BGT     .LcheckIfWinIsLevel2        @
+  LDR     R6, =3000                   @
+  CMP     R5, R6                      @
+  BLT     .LcheckIfWinIsLevel2        @
 
-  B     .LcheckIfWinDead
+  B       .LcheckIfWinDead            @   branch to player has died
+                                      @ }   
 
 .LcheckIfWinIsLevel2:
   @ Bullet in LD7
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =1000                   @
-  CMP   R5, R6                      @
-  BGT   .LcheckIfWinIsLevel1                  @
-  LDR   R6, =500                   @
-  CMP   R5, R6                      @
-  BLT   .LcheckIfWinIsLevel1              @
+  LDR     R4, =blink_countdown        @ if (countdown <= 1000 && countdown >= 500) {
+  LDR     R5, [R4]                    @   
+  LDR     R6, =1000                   @
+  CMP     R5, R6                      @
+  BGT     .LcheckIfWinIsLevel1        @         
+  LDR     R6, =500                    @
+  CMP     R5, R6                      @
+  BLT     .LcheckIfWinIsLevel1        @    
 
-  B     .LcheckIfWinDead
-
+  B       .LcheckIfWinDead            @   branch to player has died
+                                      @ }   
 .LcheckIfWinIsLevel1:
   @ Bullet in LD10
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =2000                   @
-  CMP   R5, R6                      @
-  BGT   .LcheckIfWinNotLost         @
-  LDR   R6, =1500                   @
-  CMP   R5, R6                      @
-  BLT   .LcheckIfWinNotLost         @
+  LDR     R4, =blink_countdown        @ if (countdown <= 2000 && countdown >= 1500) {
+  LDR     R5, [R4]                    @
+  LDR     R6, =2000                   @
+  CMP     R5, R6                      @
+  BGT     .LcheckIfWinNotLost         @
+  LDR     R6, =1500                   @
+  CMP     R5, R6                      @
+  BLT     .LcheckIfWinNotLost         @
 
 .LcheckIfWinDead:
 @ Has Lost
@@ -495,11 +497,11 @@ checkIfWin:
   LDR     R5, =0                      @   by writing 0 to CSR
   STR     R5, [R4]                    @   CSR is the Control and Status Register
 
-  LDR     R4, =SYSTICK_VAL            @   Reset SysTick internal counter to 0
-  LDR     R5, =0x1                    @     by writing any value
+  LDR     R4, =SYSTICK_VAL            @ Reset SysTick internal counter to 0
+  LDR     R5, =0x1                    @   by writing any value
   STR     R5, [R4]
 
-    @ Initialise the first countdown
+  @ Reset the countdown
 
   LDR     R4, =blink_countdown
   LDR     R5, =BLINK_PERIOD
@@ -514,76 +516,76 @@ checkIfWin:
   LDR     R4, =GPIOE_ODR 
   LDR     R5, [R4]                    @ Read ...
 
-  ORR     R5, #(0b1<<(LD3_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
-  ORR     R5, #(0b1<<(LD10_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
+  ORR     R5, #(0b1<<(LD3_PIN))       @   Modify ... (set bit LD3_PIN to 1) [to indicate player has lost Opens Red LED]
+  ORR     R5, #(0b1<<(LD10_PIN))      @   Modify ... (set bit LD10_PIN to 1)
 
-  BIC     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  BIC     R5, #(0b1<<(LD5_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<L5_PIN);
-  BIC     R5, #(0b1<<(LD6_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
-  BIC     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
-  BIC     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
-  BIC     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
+  BIC     R5, #(0b1<<(LD4_PIN))       @   Modify ... (set bit LD4_PIN to 0)
+  BIC     R5, #(0b1<<(LD5_PIN))       @   Modify ... (set bit LD5_PIN to 0)
+  BIC     R5, #(0b1<<(LD6_PIN))       @   Modify ... (set bit LD6_PIN to 0)
+  BIC     R5, #(0b1<<(LD9_PIN))       @   Modify ... (set bit LD9_PIN to 0)
+  BIC     R5, #(0b1<<(LD8_PIN))       @   Modify ... (set bit LD8_PIN to 0)
+  BIC     R5, #(0b1<<(LD7_PIN))       @   Modify ... (set bit LD7_PIN to 0)
 
   STR     R5, [R4]                    @ Write 
 
-  B      .LcheckIfWinEnd
+  B      .LcheckIfWinEnd              @ }
 
 
 .LcheckIfWinNotLost:
 
   @ Check if blank
-  LDR   R4, =blink_countdown        @ if (countdown != 2000) {
-  LDR   R5, [R4]                    @
-  LDR   R6, =3500                   @
-  CMP   R5, R6                      @
-  BGT   .LcheckIfWinEnd             @
-  LDR   R6, =500                    @
-  CMP   R5, R6                      @
-  BLT   .LcheckIfWinEnd             @
-.LisOpenLD3:                        @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+  LDR     R4, =blink_countdown        @ if (countdown <= 3500 && countdown >= 500) {
+  LDR     R5, [R4]                    @
+  LDR     R6, =3500                   @
+  CMP     R5, R6                      @
+  BGT     .LcheckIfWinEnd             @
+  LDR     R6, =500                    @
+  CMP     R5, R6                      @
+  BLT     .LcheckIfWinEnd             @
+.LisOpenLD3:                          @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
 
-  LDR     R4, =SYSTICK_CSR          @ Stop SysTick timer
-  LDR     R5, =0                    @   by writing 0 to CSR
-  STR     R5, [R4]                  @   CSR is the Control and Status Register
+  LDR     R4, =SYSTICK_CSR            @   Stop SysTick timer
+  LDR     R5, =0                      @     by writing 0 to CSR
+  STR     R5, [R4]                    @     CSR is the Control and Status Register
 
-  LDR     R4, =SYSTICK_VAL          @   Reset SysTick internal counter to 0
-  LDR     R5, =0x1                  @     by writing any value
+  LDR     R4, =SYSTICK_VAL            @   Reset SysTick internal counter to 0
+  LDR     R5, =0x1                    @     by writing any value
   STR     R5, [R4]
 
 
 
-  @ Initialise the first countdown
+  @ Reset the countdown
 
   LDR     R4, =blink_countdown
   LDR     R5, =BLINK_PERIOD
   STR     R5, [R4]  
 
-  LDR     R4, =win_or_lose
-  LDR     R5, =1
-  STR     R5, [R4]                   @ win_or_lose = 1
+  LDR     R4, =win_or_lose            @  Read
+  LDR     R5, =1                      @  Modify ... (win_or_lose = 1) [to indicate player has won]
+  STR     R5, [R4]                    @  Write
 
   LDR     R4, =level_selected
-  LDR     R5, [R4]
-  ADD     R5, R5, #1
-  STR     R5, [R4]  
+  LDR     R5, [R4]                    @  Read  
+  ADD     R5, R5, #1                  @  Modify ... (level_selected = level_selected + 1) [to move on to the next level]
+  STR     R5, [R4]                    @  Write 
 
   LDR     R4, =GPIOE_ODR 
-  LDR     R5, [R4]                  @ Read ...
+  LDR     R5, [R4]                    @ Read ...
 
-  ORR     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD7_PIN);
-  ORR     R5, #(0b1<<(LD6_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD6_PIN);
+  ORR     R5, #(0b1<<(LD7_PIN))       @   Modify ... (set bit LD7_PIN to 1) [to indicate player has won - Opens Green LED]
+  ORR     R5, #(0b1<<(LD6_PIN))       @   Modify ... (set bit LD6_PIN to 1) 
 
-  BIC     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  BIC     R5, #(0b1<<(LD5_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD5_PIN);
-  BIC     R5, #(0b1<<(LD10_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD10_PIN);
-  BIC     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD9_PIN);
-  BIC     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD8_PIN);
-  BIC     R5, #(0b1<<(LD3_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD3_PIN);
+  BIC     R5, #(0b1<<(LD4_PIN))       @   Modify ... (set bit LD4_PIN to 0)
+  BIC     R5, #(0b1<<(LD5_PIN))       @   Modify ... (set bit LD5_PIN to 0)
+  BIC     R5, #(0b1<<(LD10_PIN))      @   Modify ... (set bit LD10_PIN to 0)
+  BIC     R5, #(0b1<<(LD9_PIN))       @   Modify ... (set bit LD9_PIN to 0)
+  BIC     R5, #(0b1<<(LD8_PIN))       @   Modify ... (set bit LD8_PIN to 0)
+  BIC     R5, #(0b1<<(LD3_PIN))       @   Modify ... (set bit LD3_PIN to 0)
 
   STR     R5, [R4]                    @ Write 
 
                     
-.LcheckIfWinEnd:                @ }
+.LcheckIfWinEnd:                      @ }
 
   POP   {R4, R5, R6, PC}
 
