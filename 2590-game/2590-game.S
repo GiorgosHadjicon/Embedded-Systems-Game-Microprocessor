@@ -32,8 +32,8 @@ Main:
   ORR     R5, R5, #(0b1 << (RCC_AHBENR_GPIOEEN_BIT))
   STR     R5, [R4]
 
-  @ Configure LD3 for output
-  @   by setting bits 19:18 of GPIOE_MODER to 01 (GPIO Port E Mode Register)
+  @ Configure All LEDs for output
+  @   by setting their respective bits of GPIOE_MODER to 01 (GPIO Port E Mode Register)
   @   (by BIClearing then ORRing)
   LDR     R4, =GPIOE_MODER
   LDR     R5, [R4]                    @ Read ...
@@ -52,8 +52,8 @@ Main:
   STR     R5, [R4]                    @ Write 
 
   LDR     R5, [R4]                    @ Read ...
-  BIC     R5, #(0b11<<(LD10_PIN*2))    @ Modify ...
-  ORR     R5, #(0b01<<(LD10_PIN*2))    @ write 01 to bits 
+  BIC     R5, #(0b11<<(LD10_PIN*2))   @ Modify ...
+  ORR     R5, #(0b01<<(LD10_PIN*2))   @ write 01 to bits 
   STR     R5, [R4]                    @ Write 
 
   LDR     R5, [R4]                    @ Read ...
@@ -76,15 +76,15 @@ Main:
   ORR     R5, #(0b01<<(LD5_PIN*2))    @ write 01 to bits 
   STR     R5, [R4]                    @ Write 
 
-  LDR     R4, =GPIOE_ODR            @   Invert LD4
-  LDR     R5, [R4]                  @
-  ORR     R5, #(0b1<<(LD4_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  ORR     R5, #(0b1<<(LD6_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  ORR     R5, #(0b1<<(LD10_PIN))    @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  ORR     R5, #(0b1<<(LD9_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  ORR     R5, #(0b1<<(LD8_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  ORR     R5, #(0b1<<(LD7_PIN))     @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
-  STR     R5, [R4]                  @ 
+  LDR     R4, =GPIOE_ODR              @   Invert LD4
+  LDR     R5, [R4]                    @
+  ORR     R5, #(0b1<<(LD4_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD6_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD10_PIN))      @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD9_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD8_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  ORR     R5, #(0b1<<(LD7_PIN))       @   GPIOE_ODR = GPIOE_ODR ^ (1<<LD4_PIN);
+  STR     R5, [R4]                    @ 
 
   @ Initialise the first countdown
 
@@ -392,14 +392,14 @@ EXTI0_IRQHandler:
 
   PUSH  {R4,R5,LR}
 
-  LDR     R4, =win_or_lose
-  LDR     R5, [R4]
-  CMP     R5, #2
-  BEQ     .LendEventHandle
-  LDR     R4, =level_selected
-  LDR     R5, [R4]
-  CMP     R5, #4
-  BEQ     .LendEventHandle
+  LDR     R4, =win_or_lose            @ if (win_or_lose == 2) {
+  LDR     R5, [R4]                    @ 
+  CMP     R5, #2                      @
+  BEQ     .LendEventHandle            @   branch to end of event handler (do nothing if player has lost and button is pressed again)
+  LDR     R4, =level_selected         @ if (level_selected == 4) {
+  LDR     R5, [R4]                    @
+  CMP     R5, #4                      @
+  BEQ     .LendEventHandle            @   branch to end of event handler (do nothing if player has lost and button is pressed again) }
 
   LDR     R4, =SYSTICK_CSR            @   Start SysTick timer by setting CSR to 0x7
   LDR     R5, =0x7                    @     set CLKSOURCE (bit 2) to system clock (1)
